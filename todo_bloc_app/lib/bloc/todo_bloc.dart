@@ -23,11 +23,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
   }
 
-  // void _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
-  //   final newTodo = Todo(id: DateTime.now().millisecondsSinceEpoch, title: event.title);
-  //   await apiService.addTodo(newTodo);
-  //   add(LoadTodos());
-  // }
+  
   void _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
     if (state is TodoLoaded) {
       final currentTodos = (state as TodoLoaded).todos;
@@ -40,10 +36,7 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     }
   }
 
-  // void _onDeleteTodo(DeleteTodo event, Emitter<TodoState> emit) async {
-  //   await apiService.deleteTodo(event.id);
-  //   add(LoadTodos());
-  // }
+  
   void _onDeleteTodo(DeleteTodo event, Emitter<TodoState> emit) async {
   if (state is TodoLoaded) {
     final currentTodos = (state as TodoLoaded).todos;
