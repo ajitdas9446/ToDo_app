@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../model/todo.dart';
+import '../service/api_service.dart';
 import 'todo_event.dart';
 import 'todo_state.dart';
-import '../service/api_service.dart';
-import '../model/todo.dart';
 
 class TodoBloc extends Bloc<TodoEvent, TodoState> {
   final ApiService apiService;
@@ -13,36 +13,39 @@ class TodoBloc extends Bloc<TodoEvent, TodoState> {
     on<DeleteTodo>(_onDeleteTodo);
   }
 
-  void _onLoadTodos(LoadTodos event, Emitter<TodoState> emit) async {
+  Future<void> _onLoadTodos(LoadTodos event, Emitter<TodoState> emit) async {
     emit(TodoLoading());
     try {
       final todos = await apiService.fetchTodos();
       emit(TodoLoaded(todos));
     } catch (e) {
-      emit(TodoError(e.toString()));
+      emit(TodoError('Failed to load todos: $e'));
     }
   }
 
-  
-  void _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
+  Future<void> _onAddTodo(AddTodo event, Emitter<TodoState> emit) async {
     if (state is TodoLoaded) {
-      final currentTodos = (state as TodoLoaded).todos;
-      final newTodo = Todo(
-        id: DateTime.now().millisecondsSinceEpoch,
-        title: event.title,
-      );
-      final updatedTodos = List<Todo>.from(currentTodos)..add(newTodo);
-      emit(TodoLoaded(updatedTodos));
+      final currentState = state as TodoLoaded;
+      try {
+        final newTodo = await apiService.addTodo(event.title);
+        emit(TodoLoaded([...currentState.todos, newTodo]));
+      } catch (e) {
+        emit(TodoError('Failed to add todo: $e'));
+      }
     }
   }
 
-  
-  void _onDeleteTodo(DeleteTodo event, Emitter<TodoState> emit) async {
-  if (state is TodoLoaded) {
-    final currentTodos = (state as TodoLoaded).todos;
-    final updatedTodos = currentTodos.where((todo) => todo.id != event.id).toList();
-    emit(TodoLoaded(updatedTodos));
+  Future<void> _onDeleteTodo(DeleteTodo event, Emitter<TodoState> emit) async {
+    if (state is TodoLoaded) {
+      final currentState = state as TodoLoaded;
+      try {
+        await apiService.deleteTodo(event.id);
+        final updatedTodos =
+            currentState.todos.where((todo) => todo.id != event.id).toList();
+        emit(TodoLoaded(updatedTodos));
+      } catch (e) {
+        emit(TodoError('Failed to delete todo: $e'));
+      }
+    }
   }
-}
-
 }

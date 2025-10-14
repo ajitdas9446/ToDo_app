@@ -3,17 +3,23 @@ class Todo {
   final String title;
   final bool completed;
 
-  Todo({required this.id, required this.title, this.completed = false});
+  Todo({
+    required this.id,
+    required this.title,
+    required this.completed,
+  });
 
   factory Todo.fromJson(Map<String, dynamic> json) {
     return Todo(
       id: json['id'],
-      title: json['title'],
+      title: json['title'] ?? '',
       completed: json['completed'] ?? false,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'title': title, 'completed': completed};
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'completed': completed,
+      };
 }
