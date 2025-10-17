@@ -1,33 +1,41 @@
+
 // import 'package:flutter/material.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
+// import 'bloc/theme_bloc.dart';
 // import 'bloc/todo_bloc.dart';
+// import 'bloc/todo_event.dart';
 // import 'service/api_service.dart';
 // import 'screens/landing_page.dart';
-// import 'screens/todo_screen.dart';
-// import 'bloc/todo_event.dart';
 
 
 // void main() {
-//   runApp(const MyApp());
+//   final apiService = ApiService();
+//   runApp(MyApp(apiService: apiService));
 // }
 
 // class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
+//   final ApiService apiService;
+//   const MyApp({super.key, required this.apiService});
 
 //   @override
 //   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'TODO BLoC App',
-//       debugShowCheckedModeBanner: false,
-//       home: BlocProvider(
-//         create: (_) => TodoBloc(ApiService())..add(LoadTodos()),
-//         child: const TodoScreen(),
+//     return BlocProvider(
+//       create: (_) {
+//         final bloc = TodoBloc(apiService);
+//         bloc.add(LoadTodos());
+//         return bloc;
+//       },
+//       child: const MaterialApp(
+//         debugShowCheckedModeBanner: false,
+//         home: LandingPage(),
 //       ),
 //     );
 //   }
 // }
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/theme_bloc.dart';
+import 'bloc/theme_state.dart';
 import 'bloc/todo_bloc.dart';
 import 'bloc/todo_event.dart';
 import 'service/api_service.dart';
@@ -44,15 +52,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) {
-        final bloc = TodoBloc(apiService);
-        bloc.add(LoadTodos());
-        return bloc;
-      },
-      child: const MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: LandingPage(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => ThemeBloc()),
+        BlocProvider(create: (_) => TodoBloc(apiService)..add(LoadTodos())),
+      ],
+      child: BlocBuilder<ThemeBloc, ThemeState>(
+        builder: (context, themeState) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: themeState.themeData.copyWith(
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeState.buttonColor,
+                  textStyle: TextStyle(
+                    fontFamily:
+                        themeState.isCustomFont ? 'Courier' : 'Roboto',
+                  ),
+                ),
+              ),
+            ),
+            home: const LandingPage(),
+          );
+        },
       ),
     );
   }
